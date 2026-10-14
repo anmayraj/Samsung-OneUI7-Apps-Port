@@ -137,7 +137,7 @@ To reproduce or modify the port:
 ### Build Instructions:
 1. Clone this repository:
    ```bash
-   git clone https://github.com/anmay/SamsungClock-OneUI-Port.git
+   git clone https://github.com/anmayraj/Samsung-OneUI7-Apps-Port.git
    cd SamsungClock-OneUI-Port
    ```
 2. Run the automated build script:

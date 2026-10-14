@@ -1,0 +1,122 @@
+[CENTER]
+[SIZE="6"][B][COLOR="DeepSkyBlue"][PORT][NO-ROOT][/COLOR] Samsung Clock (One UI 7 / Android 16 Base)[/B][/SIZE]
+[SIZE="4"][B]The World's First Working One UI 7 / 8.5 App Port for All Android Devices![/B][/SIZE]
+[B]Tested & 100% Functional on Android 14, 15, and Android 16 Preview (AOSP / Pixel / Lenovo / Motorola / Xiaomi / OnePlus)[/B]
+
+[IMG]https://raw.githubusercontent.com/anmay/SamsungClock-OneUI-Port/main/assets/banner.png[/IMG]
+[/CENTER]
+
+[HR][/HR]
+
+[SIZE="5"][B][COLOR="DeepSkyBlue"]📌 Introduction[/COLOR][/B][/SIZE]
+Hey XDA!
+
+For years, Samsung app porting has been stuck in the past. The famous ports by [I]AyraHikari[/I] and others were made over 3 years ago on One UI 4 / One UI 5 (Android 11–12) and have completely stopped working on modern Android versions. As Samsung upgraded to One UI 6, One UI 7, and the latest Android 16 / SDK 36 preview bases, they added deep system-restricted window calls ([ICODE]TYPE_KEYGUARD_DIALOG[/ICODE]), proprietary vibration waveform engines, and privileged Daydream IPC that cause immediate crashes on any non-Samsung device.
+
+Today, I am super excited to release the [B]world's first fully functional port of Samsung Clock v12.5.60.30 (One UI 7 / Android 16 base)[/B]!
+
+No root is required. Every single feature—including alarms going off at the exact time, audio playback, vibration, live background picker with blur effects, Heads-Up notification banner overlays, and full-screen alerts—works natively!
+
+[HR][/HR]
+
+[SIZE="5"][B][COLOR="DeepSkyBlue"]✨ Working Features[/COLOR][/B][/SIZE]
+[LIST]
+[*][B]Alarm Engine[/B]: Full schedule, repeat days, custom sound, and volume ramping.
+[*][B]Heads-Up Notification (HUN) Alert[/B]: Floating banner over your home screen or active apps with interactive [B]Dismiss[/B] and [B]Snooze[/B] actions!
+[*][B]Full-Screen Alert[/B]: Fires natively over the lock screen when your alarm rings.
+[*][B]Alarm Background Customization[/B]: Background preview picker with custom video wallpapers, gradients, and real-time Samsung Blur simulation.
+[*][B]Vibration & Haptics[/B]: Smooth vibration mapped safely to AOSP vibration channels.
+[*][B]Ringtones & Audio[/B]: Seamless alarm tone playback.
+[*][B]World Clock[/B]: Global timezone mapping and search.
+[*][B]Stopwatch[/B]: Millisecond precision with lap times.
+[*][B]Timer[/B]: Multi-timer support with custom labels and notifications.
+[/LIST]
+
+[HR][/HR]
+
+[SIZE="5"][B][COLOR="DeepSkyBlue"]🔬 Technical Highlights & Reverse Engineering[/COLOR][/B][/SIZE]
+[SPOILER="Click to expand reverse-engineering details"]
+Here is how the Samsung proprietary barriers were bypassed via smali bytecode patches:
+
+1. [B]Bypassed Window Type 2009 ([ICODE]BadTokenException[/ICODE])[/B]:
+Samsung One UI 7 uses [ICODE]WindowManager.LayoutParams.type = 0x7d9[/ICODE] ([ICODE]TYPE_KEYGUARD_DIALOG[/ICODE]), which is restricted to Samsung system firmware. On AOSP, this crashes with [ICODE]BadTokenException[/ICODE]. We patched [ICODE]HeadUpNotificationService.smali[/ICODE] and [ICODE]SnackbarWrapper.smali[/ICODE] to use [ICODE]0x7f6[/ICODE] ([ICODE]TYPE_APPLICATION_OVERLAY[/ICODE]) and wrapped [ICODE]addView[/ICODE] / [ICODE]removeView[/ICODE] in try-catch guards.
+
+2. [B]Fixed [ICODE]SemStatusBarManager[/ICODE] NullPointerException[/B]:
+Samsung Clock invokes [ICODE]getSystemService("sem_statusbar")[/ICODE]. On non-Samsung ROMs, this returns null and throws a fatal Kotlin null check exception. We replaced the lookup with direct instantiation of our safe stub.
+
+3. [B]AOSP Vibration Engine Correction ([ICODE]createOneShot[/ICODE])[/B]:
+Samsung's haptic engine called [ICODE]VibrationEffect.createOneShot(II)[/ICODE] ([ICODE]int, int[/ICODE]), whereas Android's public API is [ICODE]createOneShot(long, int)[/ICODE] ([ICODE](JI)[/ICODE]). We rewrote all [ICODE]SemShim.semCreateWaveform[/ICODE] overloads with standard 64-bit long timings and safe fallback handling.
+
+4. [B]Bypassed Privileged Screensaver Check ([ICODE]READ_DREAM_STATE[/ICODE])[/B]:
+Before sounding alarms, Samsung Clock called [ICODE]IDreamManager.isDreaming()[/ICODE], throwing [ICODE]SecurityException: READ_DREAM_STATE[/ICODE]. We replaced [ICODE]cancelDreamActivity[/ICODE] in [ICODE]AlarmAlertUtils.smali[/ICODE] and [ICODE]TimerUtils.smali[/ICODE] with a clean [ICODE]return-void[/ICODE].
+
+5. [B]Safe Telephony Listener Shims[/B]:
+Intercepted [ICODE]TelephonyManager.registerTelephonyCallback[/ICODE] with safe try-catch shims and declared [ICODE]READ_PHONE_STATE[/ICODE] in the manifest.
+
+6. [B]Samsung Blur Builder ([ICODE]SemBlurInfo$Builder[/ICODE])[/B]:
+Implemented missing builder methods ([ICODE]setCanvasScale[/ICODE], [ICODE]setBackgroundColor[/ICODE], [ICODE]setBackgroundCornerRadius[/ICODE]) to prevent crashes when customizing alarm backgrounds.
+
+7. [B]Landscape Alert Drag-to-Dismiss Fix ([ICODE]AlertSlidingTabHandle[/ICODE])[/B]:
+Fixed coordinate mapping in [ICODE]AlertSlidingTabHandle[/ICODE] where Samsung's code subtracted an arbitrary offset from [ICODE]getLocationOnScreen()[/ICODE] while comparing against local event coordinates. Replaced with direct local child coordinate calculations, ensuring 100% responsive drag-to-dismiss in both portrait and landscape on all screen sizes/tablets!
+[/SPOILER]
+
+[HR][/HR]
+
+[SIZE="5"][B][COLOR="DeepSkyBlue"]📥 Download & Installation[/COLOR][/B][/SIZE]
+
+[B]Package Name:[/B] [ICODE]com.sec.android.app.clockpackage[/ICODE]
+[B]Version:[/B] 12.5.60.30 (One UI 7 / Android 16 Base)
+[B]File Size:[/B] ~57.6 MB
+[B]SHA256:[/B] [ICODE]80AAD0D7913465A4A22D72EBC2291DB182922EE482CC3B5D1E16234F23F14490[/ICODE]
+
+[URL="https://github.com/anmay/SamsungClock-OneUI-Port/releases"][SIZE="4"][B]👉 [COLOR="LimeGreen"]Download Latest APK from GitHub Releases[/COLOR][/B][/SIZE][/URL]
+
+[SIZE="4"][B]Installation via ADB (Recommended):[/B][/SIZE]
+Connect your device to your PC with USB debugging enabled, then run:
+[CODE]
+adb install -r -d SamsungClock-OneUI7-Ported-v12.5.60.30.apk
+adb shell appops set com.sec.android.app.clockpackage SYSTEM_ALERT_WINDOW allow
+adb shell appops set com.sec.android.app.clockpackage SCHEDULE_EXACT_ALARM allow
+adb shell pm grant com.sec.android.app.clockpackage android.permission.POST_NOTIFICATIONS
+adb shell pm grant com.sec.android.app.clockpackage android.permission.READ_PHONE_STATE
+[/CODE]
+
+[SIZE="4"][B]Installation Without PC (Using Shizuku):[/B][/SIZE]
+[LIST=1]
+[*]Install the APK normally on your device.
+[*]Open [B]Shizuku[/B] and install [B]App Ops[/B].
+[*]In App Ops, find [B]Samsung Clock[/B] and allow:
+[LIST]
+[*][B]Display over other apps[/B]
+[*][B]Alarms & Reminders[/B]
+[*][B]Notifications[/B]
+[/LIST]
+[*]Set Battery Usage to [B]Unrestricted[/B] in system App Info so background alarms fire accurately.
+[/LIST]
+
+[HR][/HR]
+
+[SIZE="5"][B][COLOR="DeepSkyBlue"]📱 Verified Devices[/COLOR][/B][/SIZE]
+[LIST]
+[*][B]Lenovo Idea Tab Pro (TB373FU)[/B] — Android 16 Preview (ZUI / SDK 36) [COLOR="LimeGreen"][TESTED & VERIFIED][/COLOR]
+[*][B]Google Pixel Devices[/B] — Android 14 / 15 / 16 (AOSP)
+[*][B]Motorola / Xiaomi / OnePlus / Nothing[/B] — Android 14+
+[/LIST]
+
+[HR][/HR]
+
+[SIZE="5"][B][COLOR="DeepSkyBlue"]🔗 Source Code & GitHub Repository[/COLOR][/B][/SIZE]
+Full patch source code, smali stubs, and build automation are open source on GitHub:
+[URL="https://github.com/anmay/SamsungClock-OneUI-Port"][B]GitHub: anmay/SamsungClock-OneUI-Port[/B][/URL]
+
+[HR][/HR]
+
+[SIZE="5"][B][COLOR="DeepSkyBlue"]🙏 Credits[/COLOR][/B][/SIZE]
+[LIST]
+[*][B]Samsung Electronics[/B] for the One UI design & original app assets.
+[*][B]Anmay[/B] for the reverse-engineering, smali patching, and port development.
+[*][B]AyraHikari[/B] for legacy One UI port inspiration.
+[*][B]XDA Community[/B] for keeping Android modding alive!
+[/LIST]
+
+[CENTER][SIZE="3"][B]Hit the 👍 Thanks button if you enjoy having Samsung's One UI 7 Clock on your device![/B][/SIZE][/CENTER]

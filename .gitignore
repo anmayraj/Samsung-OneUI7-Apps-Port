@@ -1,0 +1,30 @@
+# Compiled APK binaries (distribute via GitHub Releases)
+*.apk
+release/*.apk
+
+# Decompiled OEM trees (to prevent DMCA issues and keep repo lightweight)
+decompiled_clock/
+decompiled_stubs/
+stubs.zip
+
+# Build outputs and intermediate files
+build/
+*.idsig
+*.tmp
+*.log
+classes.dex
+
+# Debug dumps and test captures
+*.png
+*.xml
+crash_dump.txt
+stubs_classes/
+stubs_dex/
+tmp_helper/
+
+# IDE and OS metadata
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+.DS_Store
